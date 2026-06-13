@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const PreTnterviewBody = z.object({
-    linkedin : z.string() ,
+export const PreInterviewBody = z.object({
+
     github : z.string()
 })

@@ -7,22 +7,24 @@ import { useState } from "react";
 import { toast } from "sonner"
 import axios from "axios";
 import { BACKEND_URL } from "@/lib/config";
+import { useNavigate } from "react-router";
 
 export function Form() {
-
+    const [loading , setLoading] = useState(false)
     const [github , setGithub] = useState("")
-    const [linkedin , setLinkedin] = useState("")
+    const navigate  = useNavigate()
 
     async function Submit(){
-        if (!github && !linkedin){
+        if (!github ){
             toast("Please provide valid github and linkedin urls")
             return;
         }
 
-        await axios.post(`${BACKEND_URL}/api/v1/pre-interview` , {
-            linkedin,
+        setLoading(true);
+        const response = await axios.post(`${BACKEND_URL}/api/v1/pre-interview` , { 
             github
-        })
+        })   
+        navigate(`/interview/${response.data.id}`)
     }
 
     return (
@@ -31,14 +33,12 @@ export function Form() {
             <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance">
                 Ai Interview kickstart
             </h1>
-            <div className="p-2"> 
-            <Input placeholder="Linkedin profile url" onChange={e => setLinkedin(e.target.value)}/>
-            </div>
+           
             <div className="p-2"> 
             <Input placeholder="Github profile url" onChange={e => setGithub(e.target.value)} />
             </div>
             <div className="flex justify-center items-center p-4">
-                <Button onClick={Submit}>Start interview</Button>
+                <Button disabled={loading} onClick={Submit}> {loading ? "Starting Interview.." : "Start interview"}</Button>
             </div>
         </div>
   </div>
