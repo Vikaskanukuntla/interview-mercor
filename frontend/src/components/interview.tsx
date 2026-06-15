@@ -1,8 +1,9 @@
 import { BACKEND_URL } from "@/lib/config"
 import { useEffect, useRef } from "react"
 import { useParams } from "react-router"
-
-
+import { DeepgramClient } from "@deepgram/sdk";
+import axios from "axios";
+const client = new DeepgramClient();
 
 export function Interview() {
 
@@ -11,7 +12,7 @@ export function Interview() {
 
     useEffect(()=> {
 
-        (async () => {
+        ( async() => {
                 // Create a peer connection
                 const pc = new RTCPeerConnection();
 
@@ -24,10 +25,39 @@ export function Interview() {
                 const ms = await navigator.mediaDevices.getUserMedia({
                 audio: true,
                 });
-                pc.addTrack(ms.getTracks()[0]!);
+                
+                
+                const socket = new WebSocket('wss://api.deepgram.com/v1/listen' , 
+                    ['toten' , 'bfd4ea4d42e49f8a1db1a0b80790c94623a1a3fc']);
+                
 
+                
+                socket.onopen = () => {
+                    
+                    const mediaRecorder = new MediaRecorder(ms , {mimeType : 'audio/webm'});
+                    mediaRecorder.start(250);
+                    mediaRecorder.addEventListener('dataavailable' , (event) => {
+                        socket.send(event.data);
+                    })
+                    
+                }
+                
+                socket.onmessage = (message) => {
+                    const received = JSON.parse(message.data);
+                    const transcript = received.channel.alternatives[0].transcript;
+                    
+                    if (transcript){
+                        console.log(transcript)
+                        axios.post(`${BACKEND_URL}/api/v1/session/user/response/${interviewId}` , {
+                            message : transcript
+                        })
+                    }
+                }
+                
+                pc.addTrack(ms.getTracks()[0]!);
+                  
                 // Set up data channel for sending and receiving events
-                // const dc = pc.createDataChannel("oai-events");
+                const dc = pc.createDataChannel("oai-events");
 
                 // Start the session using the Session Description Protocol (SDP)
                 const offer = await pc.createOffer();

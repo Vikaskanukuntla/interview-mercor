@@ -81,6 +81,18 @@ app.post("/api/v1/session/:interviewId" , async (req , res) => {
       }
 })
 
+app.post("/api/v1/session/user/response/:interviewId" , async (req , res) => {
+    const {message} = req.body;
+    await prisma.message.create({
+      data : {
+        interviewId : req.params.interviewId!,
+        type : "User",
+        message : message
+      }
+    })
+    res.json({message : "Message Saved"})
+})
+
 
 app.listen(3001, () => {
     console.log("Server running on port 3001");
